@@ -46,5 +46,8 @@ Round=15  C15D15=E1F00DC0DF061B  Round key=003A32C15D23E4
 Round=16  C16D16=C3E01B91BE0C36  Round key=0039385554E225
 ```
 
+## Sources
+[1] https://bit.nmu.org.ua/ua/student/metod/cryptology/%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D1%8F%206.pdf
+
 
 

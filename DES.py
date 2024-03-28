@@ -15,6 +15,7 @@ class DES:
         self.STRAIGHT_ROUND = PBox.get_straight_round_permutation()
         self.round_binary_keys, self.cd_blocks = self.generate_rounds()  # getting 56 bit key from 64 bit using the parity bits
         self.output_sbox = SBox().get_sbox_substitution
+        self.left, self.right = None, None
 
     @staticmethod
     def get_matrix(data: list):
@@ -53,11 +54,11 @@ class DES:
         print(f'L0R0={bin2hex(data, is_needed=True, n=16)}')
 
         # Splitting
-        left, right = data[0:32], data[32:64]
+        self.left, self.right = data[0:32], data[32:64]
 
         for i in range(1, 17):
             # Expansion D-box: Expanding the 32 bits data into 48 bits
-            right_expanded = self.permute(right, self.P_EXPAND, 48)
+            right_expanded = self.permute(self.right, self.P_EXPAND, 48)
             # XOR RoundKey[i] and right_expanded
             print(f"Round={i}  C{i}D{i}={self.cd_blocks[i-1]}  Round key={bin2hex(self.round_binary_keys[i-1], is_needed=True, n=12)}")
             print(f'CP1={bin2hex(right_expanded, is_needed=True, n=12)}')
@@ -69,16 +70,16 @@ class DES:
             print(f'CP4={"".join(map(str, output_pbox))}={bin2hex(output_pbox, is_needed=True, n=8)}')
 
             # XOR left and SBox
-            result = xor(output_pbox, left)
-            left = result
-            print(f'L{i}R{i}={bin2hex(right, is_needed=True, n=8)}{bin2hex(left, is_needed=True, n=9)}')
+            result = xor(output_pbox, self.left)
+            self.left = result
+            print(f'L{i}R{i}={bin2hex(self.right, is_needed=True, n=8)}{bin2hex(self.left, is_needed=True, n=9)}')
             print()
             # Swapper
             if i < 16:
-                left, right = right, left
+                self.left, self.right = self.right, self.left
 
         # Combination
-        output = left + right
+        output = self.left + self.right
         # Final permutation: final rearranging of bits to get cipher text
         cipher_text = self.permute(output, self.PC_F, 64, 'finish')
         print(f'Cipher text={bin2hex(cipher_text)}')
@@ -91,11 +92,11 @@ class DES:
         # getting 56 bit key from 64 bit using the parity bits
 
         # Splitting
-        left, right = data[0:32], data[32:64]
+        self.left, self.right = data[0:32], data[32:64]
 
         for i in range(17, 1, -1):
             # Expansion D-box: Expanding the 32 bits data into 48 bits
-            right_expanded = self.permute(right, self.P_EXPAND, 48)
+            right_expanded = self.permute(self.right, self.P_EXPAND, 48)
             # XOR RoundKey[i] and right_expanded
             print(f"Round={i-1}  C{i-1}D{i-1}={self.cd_blocks[i-2]}  Round key={bin2hex(self.round_binary_keys[i-2], is_needed=True, n=12)}")
             print(f'CP1={bin2hex(right_expanded, is_needed=True, n=12)}')
@@ -108,16 +109,15 @@ class DES:
             print(f'CP4={"".join(map(str, output_pbox))}={bin2hex(output_pbox, is_needed=True, n=8)}')
 
             # XOR left and SBox
-            result = xor(output_pbox, left)
-            left = result
-            print(f'L{i-2}R{i-2}={bin2hex(right, is_needed=True, n=8)}{bin2hex(left, is_needed=True, n=8)}')
+            result = xor(output_pbox, self.left)
+            self.left = self.right
+            self.right = result
+
+            print(f'L{i-2}R{i-2}={bin2hex(self.left, is_needed=True, n=8)}{bin2hex(self.right, is_needed=True, n=8)}')
             print()
-            # Swapper
-            if i < 16:
-                left, right = right, left
 
         # Combination
-        output = left + right
+        output = self.left + self.right
         # Final permutation: final rearranging of bits to get cipher text
         plain_text = self.permute(output, self.PC_F, 64, 'finish')
 
@@ -130,8 +130,8 @@ CT = '18C7B8E55EF4317C'
 
 
 des = DES(KEY)
-# des.encrypt(PT)
-des.decrypt(CT)
+des.encrypt(PT)
+# des.decrypt(CT)
 
 
 input_text = '80EE7EE0474A74BF987C314AB0BB86B'
